@@ -1,0 +1,12 @@
+{
+    "name": "grupo/escaperoom",
+    "description": "Escape room de clique em PHP",
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
