@@ -20,9 +20,9 @@ CREATE TABLE partidas (
     tempo_segundos INT UNSIGNED NULL,
     erros INT UNSIGNED NOT NULL DEFAULT 0,
     dicas_usadas INT UNSIGNED NOT NULL DEFAULT 0,
-    sala_atual TINYINT UNSIGNED NOT NULL DEFAULT 1,
-    itens_json TEXT NULL,
-    status ENUM('em_andamento', 'concluida', 'tempo_esgotado')
+    erros INT UNSIGNED NOT NULL DEFAULT 0,
+    dicas_usadas INT UNSIGNED NOT NULL DEFAULT 0,
+    status ENUM('em_andamento', 'concluida', 'tempo_esgotado', 'abandonada')
         NOT NULL DEFAULT 'em_andamento',
 
     CONSTRAINT fk_partida_jogador
