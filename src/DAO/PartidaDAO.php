@@ -9,7 +9,9 @@ use PDO;
 
 class PartidaDAO
 {
+    // valores q podem, confere antes de ir pro banco
     private const DIFICULDADES  = ['facil', 'medio', 'dificil'];
+    private const SALAS         = ['facil1', 'facil2', 'medio1', 'medio2', 'dificil1', 'dificil2'];
     private const STATUS_FINAIS = ['concluida', 'tempo_esgotado', 'abandonada'];
 
     private PDO $pdo;
@@ -20,8 +22,12 @@ class PartidaDAO
     }
 
     // cria uma partida nova e devolve o id dela
-    public function criar(int $jogadorId, string $dificuldade, int $limiteSegundos): int
+    public function criar(int $jogadorId, string $sala, string $dificuldade, int $limiteSegundos): int
     {
+        // in_array com true no final compara valor e tipo
+        if (!in_array($sala, self::SALAS, true)) {
+            throw new InvalidArgumentException('Sala inválida.');
+        }
         if (!in_array($dificuldade, self::DIFICULDADES, true)) {
             throw new InvalidArgumentException('Dificuldade inválida.');
         }
@@ -29,24 +35,25 @@ class PartidaDAO
         // perde partida ativa se sair do jogo
         $this->abandonarAtivas($jogadorId);
 
-        // inicio dado pelo banco com a hora do servidor
+        // o inicio quem preenche e o banco, com a hora do servidor
         $stmt = $this->pdo->prepare(
-            'INSERT INTO partidas (jogador_id, dificuldade, limite_segundos)
-             VALUES (:jogador, :dificuldade, :limite)'
+            'INSERT INTO partidas (jogador_id, dificuldade, sala, limite_segundos)
+             VALUES (:jogador, :dificuldade, :sala, :limite)'
         );
         $stmt->execute([
             ':jogador'     => $jogadorId,
             ':dificuldade' => $dificuldade,
+            ':sala'        => $sala,
             ':limite'      => $limiteSegundos,
         ]);
 
         return (int) $this->pdo->lastInsertId();
     }
 
-    // partida em andamento do jogador, ou null se não tiver
+    // ler a partida em andamento, ou null se nao tiver
     public function buscarAtiva(int $jogadorId): ?array
     {
-        // TIMESTAMPDIFF calcula no mysql os segundos desde o inicio
+        // TIMESTAMPDIFF calcula dentro do mysql os segundos de jogo
         $stmt = $this->pdo->prepare(
             "SELECT *, TIMESTAMPDIFF(SECOND, inicio, NOW()) AS segundos_decorridos
              FROM partidas
@@ -59,7 +66,6 @@ class PartidaDAO
         return $stmt->fetch() ?: null;
     }
 
-    // busca uma partida pelo id
     public function buscarPorId(int $partidaId): ?array
     {
         $stmt = $this->pdo->prepare(
@@ -71,7 +77,7 @@ class PartidaDAO
         return $stmt->fetch() ?: null;
     }
 
-    // soma 1 erro (só se a partida ainda estiver em andamento)
+    // soma 1 erro, so se a partida ainda estiver em andamento
     public function registrarErro(int $partidaId): void
     {
         $stmt = $this->pdo->prepare(
@@ -81,7 +87,6 @@ class PartidaDAO
         $stmt->execute([':id' => $partidaId]);
     }
 
-    // soma 1 dica usada
     public function registrarDica(int $partidaId): void
     {
         $stmt = $this->pdo->prepare(
@@ -91,14 +96,15 @@ class PartidaDAO
         $stmt->execute([':id' => $partidaId]);
     }
 
-    // termina a partida
+    // termina a partida. true se terminou agora, false se ja tinha terminado
     public function finalizar(int $partidaId, string $status): bool
     {
         if (!in_array($status, self::STATUS_FINAIS, true)) {
             throw new InvalidArgumentException('Status final inválido.');
         }
 
-
+        // tempo total calculado no banco (fim - inicio), nunca vem do navegador.
+        // o where garante q so finaliza uma vez
         $stmt = $this->pdo->prepare(
             "UPDATE partidas
              SET status = :status,
@@ -108,10 +114,11 @@ class PartidaDAO
         );
         $stmt->execute([':status' => $status, ':id' => $partidaId]);
 
+        // rowCount = quantas linhas o update mudou
         return $stmt->rowCount() > 0;
     }
 
-    // marca partidas abandonadas
+    // marca como abandonada a partida em andamento do jogador
     public function abandonarAtivas(int $jogadorId): void
     {
         $stmt = $this->pdo->prepare(
@@ -122,5 +129,18 @@ class PartidaDAO
              WHERE jogador_id = :jogador AND status = 'em_andamento'"
         );
         $stmt->execute([':jogador' => $jogadorId]);
+    }
+
+    // salas q o jogador ja concluiu, pra marcar na tela de escolha
+    public function salasConcluidas(int $jogadorId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT DISTINCT sala FROM partidas
+             WHERE jogador_id = :jogador AND status = 'concluida'"
+        );
+        $stmt->execute([':jogador' => $jogadorId]);
+
+        // devolve so a coluna: ['facil1', 'medio2', ...]
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 }

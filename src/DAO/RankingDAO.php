@@ -7,8 +7,11 @@ use App\Core\Conexao;
 use InvalidArgumentException;
 use PDO;
 
+// ranking nao tem tabela, e so uma consulta em cima das partidas
 class RankingDAO
 {
+    private const SALAS = ['facil1', 'facil2', 'medio1', 'medio2', 'dificil1', 'dificil2'];
+
     private PDO $pdo;
 
     public function __construct()
@@ -16,35 +19,29 @@ class RankingDAO
         $this->pdo = Conexao::getInstancia();
     }
 
-    // Os melhores tempos de UMA dificuldade (não faz sentido comparar
-    // 6 minutos do difícil com 15 do fácil)
-    public function top(string $dificuldade, int $limite = 10): array
+    // melhores tempos de uma sala
+    public function top(string $sala, int $limite = 10): array
     {
-        if (!in_array($dificuldade, ['facil', 'medio', 'dificil'], true)) {
-            throw new InvalidArgumentException('Dificuldade inválida.');
+        if (!in_array($sala, self::SALAS, true)) {
+            throw new InvalidArgumentException('Sala inválida.');
         }
 
-        // INNER JOIN junta duas tabelas: para cada partida, traz o nome
-        // do jogador dono dela. Só entram partidas concluídas.
-        // ORDER BY: menor tempo primeiro; empate = menos erros ganha.
-        // O INDEX idx_ranking que criamos no banco acelera esta consulta.
+        // inner join pra pegar o nome do jogador. so entra partida concluida.
+        // menor tempo primeiro, se empatar quem errou menos ganha
         $stmt = $this->pdo->prepare(
             "SELECT j.nome, p.tempo_segundos, p.erros
              FROM partidas p
              INNER JOIN jogadores j ON j.id = p.jogador_id
-             WHERE p.dificuldade = :dificuldade AND p.status = 'concluida'
+             WHERE p.sala = :sala AND p.status = 'concluida'
              ORDER BY p.tempo_segundos ASC, p.erros ASC
              LIMIT :limite"
         );
 
-        // LIMIT precisa receber um número inteiro de verdade. Por isso
-        // usamos bindValue com PDO::PARAM_INT, em vez de passar no execute()
-        // (que enviaria o valor como texto e daria erro de SQL).
-        $stmt->bindValue(':dificuldade', $dificuldade);
+        // limit precisa de inteiro de verdade, por isso bindValue com PARAM_INT
+        $stmt->bindValue(':sala', $sala);
         $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
         $stmt->execute();
 
-        // fetchAll() devolve TODAS as linhas (um array de arrays)
         return $stmt->fetchAll();
     }
 }
