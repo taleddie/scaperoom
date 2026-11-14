@@ -11,6 +11,7 @@ final class Sala
     private const CATALOGO = [
         'facil1' => [
             'dificuldade'   => 'facil',
+            'tipo'          => 'simples',
             'nome'          => 'Almoxarifado',
             'descricao'     => 'Prateleiras vazias e uma mesa coberta de poeira.',
             'codigo'        => '472',
@@ -19,6 +20,7 @@ final class Sala
         ],
         'facil2' => [
             'dificuldade'   => 'facil',
+            'tipo'          => 'simples',
             'nome'          => 'Sala de Espera',
             'descricao'     => 'Cadeiras enfileiradas e um relógio parado.',
             'codigo'        => '815',
@@ -27,6 +29,7 @@ final class Sala
         ],
         'medio1' => [
             'dificuldade'   => 'medio',
+            'tipo'          => 'armario',
             'nome'          => 'Arquivo',
             'descricao'     => 'Fichários antigos escondem mais do que papéis.',
             'codigo'        => '3917',
@@ -35,14 +38,16 @@ final class Sala
         ],
         'medio2' => [
             'dificuldade'   => 'medio',
-            'nome'          => 'Depósito',
-            'descricao'     => 'Frascos sem rótulo e um armário trancado.',
-            'codigo'        => '6204',
-            'palavra'       => 'REAGENTE',
-            'codigo_na_url' => true,
+            'tipo'          => 'celular',
+            'nome'          => 'Apartamento',
+            'descricao'     => 'Luzes verdes, uma garrafa na mesa e um celular esquecido no balcão.',
+            'codigo'        => '48192',
+            'palavra'       => 'CASTOR',
+            'codigo_na_url' => false,
         ],
         'dificil1' => [
             'dificuldade'   => 'dificil',
+            'tipo'          => 'armario',
             'nome'          => 'Laboratório',
             'descricao'     => 'Luzes piscando e o cheiro de algo queimando.',
             'codigo'        => '58306',
@@ -51,6 +56,7 @@ final class Sala
         ],
         'dificil2' => [
             'dificuldade'   => 'dificil',
+            'tipo'          => 'armario',
             'nome'          => 'Sala de Observação',
             'descricao'     => 'Um vidro espesso separa você do que há lá dentro.',
             'codigo'        => '90417',
@@ -86,6 +92,7 @@ final class Sala
         return [
             'id'            => $sala,
             'dificuldade'   => $dados['dificuldade'],
+            'tipo'          => $dados['tipo'],
             'nome'          => $dados['nome'],
             'descricao'     => $dados['descricao'],
             'codigo_na_url' => $dados['codigo_na_url'],
@@ -97,6 +104,11 @@ final class Sala
     public static function dificuldade(string $sala): string
     {
         return self::obter($sala)['dificuldade'];
+    }
+
+    public static function tipo(string $sala): string
+    {
+        return self::obter($sala)['tipo'];
     }
 
     public static function nome(string $sala): string

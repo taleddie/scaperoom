@@ -4,9 +4,8 @@ declare(strict_types=1);
 namespace App\Core;
 
 use App\Controller\AuthController;
-/* os dois de baixo estão comentados pq não tem coisa neles ainda
 use App\Controller\JogoController;
-use App\Controller\RankingController;*/
+use App\Controller\RankingController;
 
 class Roteador
 {
@@ -17,17 +16,16 @@ class Roteador
         'cadastro'  => [AuthController::class,    'mostrarCadastro', 'GET',  false],
         'cadastrar' => [AuthController::class,    'cadastrar',       'POST', false],
         'sair'      => [AuthController::class,    'sair',            'POST', true],
-        // TODO (descomentar quando controller + view estiverem prontos):
-        // 'salas'           => [JogoController::class,    'salas',           'GET',  true],
-        // 'iniciar'         => [JogoController::class,    'iniciar',         'POST', true],
-        // 'sala'            => [JogoController::class,    'sala',            'GET',  true],
-        // 'examinar'        => [JogoController::class,    'examinar',        'GET',  true],
-        // 'tentar'          => [JogoController::class,    'tentar',          'POST', true],
-        // 'verificar_tempo' => [JogoController::class,    'verificarTempo',  'GET',  true],
-        // 'jumpscare'       => [JogoController::class,    'jumpscare',       'GET',  true],
-        // 'gameover'        => [JogoController::class,    'gameover',        'GET',  true],
-        // 'vitoria'         => [JogoController::class,    'vitoria',         'GET',  true],
-        // 'ranking'         => [RankingController::class, 'index',           'GET',  true]
+        'salas'           => [JogoController::class,    'salas',          'GET',  true],
+        'iniciar'         => [JogoController::class,    'iniciar',        'POST', true],
+        'sala'            => [JogoController::class,    'sala',           'GET',  true],
+        'examinar'        => [JogoController::class,    'examinar',       'GET',  true],
+        'tentar'          => [JogoController::class,    'tentar',         'POST', true],
+        'verificar_tempo' => [JogoController::class,    'verificarTempo', 'GET',  true],
+        'jumpscare'       => [JogoController::class,    'jumpscare',      'GET',  true],
+        'vitoria'         => [JogoController::class,    'vitoria',        'GET',  true],
+        'preferencias'    => [JogoController::class,    'preferencias',   'POST', true],
+        'ranking'         => [RankingController::class, 'index',          'GET',  true]
     ];
 
     public static function despachar(string $acao): void

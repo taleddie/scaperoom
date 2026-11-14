@@ -71,6 +71,9 @@ class Sessao
                 'armario'        => false,
                 'armario_aberto' => false,
                 'porta'          => false,
+                // sala do celular: balcao = viu o celular, celular_aberto = acertou a senha
+                'balcao'         => false,
+                'celular_aberto' => false,
             ],
         ];
     }

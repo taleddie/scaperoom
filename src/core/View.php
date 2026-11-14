@@ -46,4 +46,10 @@ class View
     {
         return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
     }
+
+    // campo escondido do token csrf (todo form POST usa isso)
+    public static function csrf(): string
+    {
+        return '<input type="hidden" name="csrf" value="' . self::e(Sessao::csrfToken()) . '">';
+    }
 }
