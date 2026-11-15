@@ -12,7 +12,7 @@
 
 O **Escape Room** é um jogo de enigmas em formato de escape room, desenvolvido para navegador. A proposta é fazer com que o jogador investigue os cenários, encontre pistas e resolva desafios para conseguir escapar antes que o tempo termine.
 
-A ambientação é inspirada nos **Backrooms**, especialmente na sensação de espaços vazios, repetitivos e desconfortáveis, e em **[Notpron](http://www.notpron.org/)**, jogo conhecido por seus enigmas que exigem observação, interpretação e raciocínio fora do convencional.
+A ambientação é inspirada nas **Backrooms**, especialmente na sensação de espaços vazios, repetitivos e desconfortáveis, e no **Notpron**, jogo conhecido por seus enigmas que exigem observação, interpretação e raciocínio fora do convencional.
 
 O projeto foi desenvolvido em PHP e utiliza conceitos de programação orientada a objetos, arquitetura MVC, persistência de dados e validação de requisições.
 
