@@ -1,10 +1,12 @@
+<!--
+
+o dono deste telefone adora roedores
+tente um anagrama
+
+-->
 <?php
 use App\Core\View;
 
-/* sala medio 2 (apartamento).
-   variaveis q chegam do controller: $sala, $restante, $penalidade, $erros, $mensagem,
-   $vista (cenario|vinho|celular|porta), $celularAberto, $codigoVisivel
-   fluxo: mesa (vinho) -> balcao (celular, senha = anagrama) -> codigo -> porta */
 $base = 'index.php?acao=';
 ?>
 <div class="topo-sala">
@@ -19,30 +21,33 @@ $base = 'index.php?acao=';
     <p class="mensagem"><?= View::e($mensagem) ?></p>
 <?php endif; ?>
 
+<!-- cenario principal -->
 <?php if ($vista === 'cenario'): ?>
-    <?php /* imagem 1: a sala toda. as areas clicaveis usam % da imagem, entao
-             acompanham o tamanho dela (muda o left/top/width/height p ajustar) */ ?>
     <div class="cena">
         <img src="assets/img/m2/cenario.jpg" alt="Apartamento escuro com luzes verdes">
+        
+        <!-- examinar mesa -->
         <a class="ponto" style="left:47%;top:60%;width:10%;height:15%"
-           href="<?= $base ?>examinar&amp;objeto=mesa" title="Mesa de centro"></a>
-        <a class="ponto" style="left:66%;top:43%;width:21%;height:29%"
-           href="<?= $base ?>examinar&amp;objeto=balcao" title="Balcão ao lado do fogão"></a>
-    </div>
-    <p class="legenda">Clique nos objetos para examinar.</p>
-    <p><a class="botao" href="<?= $base ?>examinar&amp;objeto=porta">Ir até a porta</a></p>
+            href="<?= $base ?>examinar&amp;objeto=mesa" title="Mesa de centro"></a>
+            
+        <!-- examinar balcao -->
+        <a class="ponto" style="left:63%;top:43%;width:12%;height:10%"
+            href="<?= $base ?>examinar&amp;objeto=balcao" title="Balcão ao lado do fogão"></a>
 
-<?php elseif ($vista === 'vinho'): ?>
-    <?php /* imagem 2: garrafa com o nome em destaque */ ?>
-    <!-- psiu: o nome do vinho está com as letras fora de ordem. tente um anagrama -->
-    <div class="cena">
-        <img src="assets/img/m2/vinho.jpeg" alt="Garrafa de vinho sobre a mesa">
+        <!-- examinar porta -->
+        <a class="ponto" style="left:23%;top:27%;width:12%;height:30%"
+            href="<?= $base ?>examinar&amp;objeto=porta" title="Porta trancada"></a>
     </div>
-    <p class="legenda">Uma garrafa de vinho. O nome do rótulo está em destaque.</p>
+
+    <!-- vista da mesa -->
+<?php elseif ($vista === 'vinho'): ?>
+    <div class="cena">
+        <img src="assets/img/m2/vinho.png" alt="Garrafa de vinho sobre a mesa">
+    </div>
     <p><a class="botao" href="<?= $base ?>sala&amp;sala=<?= View::e($sala['id']) ?>">Voltar</a></p>
 
+    <!-- balcao com celular -->
 <?php elseif ($vista === 'celular'): ?>
-    <?php /* imagem 3: balcao com o celular */ ?>
     <div class="cena">
         <img src="assets/img/m2/celular.png" alt="Celular bloqueado no balcão">
     </div>
@@ -57,7 +62,6 @@ $base = 'index.php?acao=';
             <button type="submit">Desbloquear</button>
         </form>
     <?php else: ?>
-        <?php /* o codigo so existe no html depois de acertar a senha (o servidor confere) */ ?>
         <div class="achado">
             <p>Mensagem na tela do celular:</p>
             <strong class="codigo"><?= View::e($codigoVisivel) ?></strong>
@@ -66,8 +70,8 @@ $base = 'index.php?acao=';
 
     <p><a class="botao" href="<?= $base ?>sala&amp;sala=<?= View::e($sala['id']) ?>">Voltar</a></p>
 
+    <!-- porta -->
 <?php elseif ($vista === 'porta'): ?>
-    <?php /* imagem 4: a porta, onde se digita o codigo de 5 digitos */ ?>
     <div class="cena">
         <img src="assets/img/m2/porta.jpeg" alt="Porta trancada">
     </div>

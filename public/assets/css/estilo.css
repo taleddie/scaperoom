@@ -216,11 +216,12 @@ th, td {
   border: 1px solid var(--borda); 
 }
 
-.ponto { 
-  position: absolute; 
-  display: block; 
-  border: 2px dashed transparent; 
-  border-radius: 6px; 
+/* colocar algo para mostrar onde esta o ponto, lembre de remover */
+.ponto {
+    position: absolute;
+    border: none !important;
+    background: transparent !important;
+    cursor: pointer;
 }
 
 .ponto:hover, .ponto:focus { 

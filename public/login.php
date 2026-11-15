@@ -78,7 +78,6 @@ $logado = $_SESSION['jogador'] ?? null;
             overflow-x: hidden;
         }
 
-        /* Efeito de fita VHS antiga com chuvisco subtil */
         body::before {
             content: " ";
             display: block;
@@ -126,7 +125,7 @@ $logado = $_SESSION['jogador'] ?? null;
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
 
-    <!-- Indicador de gravação de câmara analógica com relógio em tempo real -->
+    <!-- indicador de gravacao de camera em tempo real -->
     <div id="relogio-sistema" class="absolute top-4 left-4 vhs-time text-2xl opacity-75">
         [SP] --/--/-- --:--:-- 
     </div>
@@ -189,7 +188,7 @@ $logado = $_SESSION['jogador'] ?? null;
                 </button>
             </div>
 
-            <!-- Login Form -->
+            <!-- login form -->
             <form id="form-login" method="POST" class="space-y-4">
                 <input type="hidden" name="acao" value="login">
                 <div>
@@ -208,7 +207,7 @@ $logado = $_SESSION['jogador'] ?? null;
                 </button>
             </form>
 
-            <!-- Cadastro Form -->
+            <!-- cadastro form -->
             <form id="form-cadastro" method="POST" class="space-y-4 hidden">
                 <input type="hidden" name="acao" value="cadastro">
                 <div>
@@ -254,7 +253,7 @@ $logado = $_SESSION['jogador'] ?? null;
             }
         }
 
-        // Relógio dinâmico em tempo real da máquina
+        // relogio em tempo real full ultra hd 4k
         function atualizarRelogio() {
             const agora = new Date();
             const mes = String(agora.getMonth() + 1).padStart(2, '0');
