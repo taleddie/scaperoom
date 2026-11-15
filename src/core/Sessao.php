@@ -74,6 +74,9 @@ class Sessao
                 // sala do celular: balcao = viu o celular, celular_aberto = acertou a senha
                 'balcao'         => false,
                 'celular_aberto' => false,
+                // piscina: corrimao = viu o corrimao, codigo_resolvido = acertou o codigo
+                'corrimao'         => false,
+                'codigo_resolvido' => false,
             ],
         ];
     }

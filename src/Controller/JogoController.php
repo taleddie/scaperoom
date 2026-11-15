@@ -93,31 +93,31 @@ class JogoController
             [$partida, $id, $jogo] = $this->carregar();
 
             $etapas = $jogo['etapas'];
+            $config = $this->configSala($id);
 
             // vista pedida na url, so aceita se a etapa anterior ja foi feita
             $vista = (string) filter_input(INPUT_GET, 'vista');
-            $liberada = match ($vista) {
-                'vinho'   => $etapas['mesa'],
-                'celular' => $etapas['balcao'],
-                'porta'   => $etapas['porta'],
-                default   => false,
-            };
+            $liberada = isset($config['vistas'][$vista])
+                && !empty($etapas[$config['vistas'][$vista]]);
             if (!$liberada) {
                 $vista = 'cenario';
             }
 
             // a view so recebe o q o jogador JA desbloqueou.
-            // o codigo da porta nao vai no html antes de acertar a senha do celular
+            // o segredo da proxima etapa nao vai no html antes da hora
             View::renderizar('salas/' . $id, [
-                'titulo'        => Sala::nome($id),
-                'sala'          => Sala::dados($id),
-                'restante'      => $partida->tempoRestante(),
-                'penalidade'    => $partida->penalidadeErro(),
-                'erros'         => $partida->getErros(),
-                'mensagem'      => Sessao::pegarMensagem(),
-                'vista'         => $vista,
-                'celularAberto' => $etapas['celular_aberto'],
-                'codigoVisivel' => $etapas['celular_aberto'] ? $jogo['codigo'] : null,
+                'titulo'           => Sala::nome($id),
+                'sala'             => Sala::dados($id),
+                'restante'         => $partida->tempoRestante(),
+                'penalidade'       => $partida->penalidadeErro(),
+                'erros'            => $partida->getErros(),
+                'mensagem'         => Sessao::pegarMensagem(),
+                'vista'            => $vista,
+                'etapas'           => $etapas,
+                'celularAberto'    => !empty($etapas['celular_aberto']),
+                'codigoVisivel'    => !empty($etapas['celular_aberto']) ? $jogo['codigo'] : null,
+                'codigoResolvido'  => !empty($etapas['codigo_resolvido']),
+                'palavraVisivel'   => !empty($etapas['codigo_resolvido']) ? $jogo['palavra'] : null,
             ]);
         });
     }
@@ -131,22 +131,16 @@ class JogoController
             [, $id] = $this->carregar();
 
             $objeto = (string) filter_input(INPUT_GET, 'objeto');
+            $config = $this->configSala($id);
 
-            // objeto => [etapa q marca, vista q abre]
-            $objetos = [
-                'mesa'   => ['mesa',   'vinho'],
-                'balcao' => ['balcao', 'celular'],
-                'porta'  => ['porta',  'porta'],
-            ];
-
-            if (!isset($objetos[$objeto])) {
+            if (!isset($config['objetos'][$objeto])) {
                 Roteador::redirecionar($this->urlSala($id));
             }
 
-            [$etapa, $vista] = $objetos[$objeto];
-            Sessao::marcarEtapa($etapa);
+            $alvo = $config['objetos'][$objeto];
+            Sessao::marcarEtapa($alvo['etapa']);
 
-            Roteador::redirecionar($this->urlSala($id, $vista));
+            Roteador::redirecionar($this->urlSala($id, $alvo['vista']));
         });
     }
 
@@ -159,25 +153,39 @@ class JogoController
             [$partida, $id, $jogo] = $this->carregar();
 
             $alvo     = (string) filter_input(INPUT_POST, 'alvo');
-            $resposta = mb_substr(trim((string) filter_input(INPUT_POST, 'resposta')), 0, 30);
+            $resposta = trim((string) filter_input(INPUT_POST, 'resposta'));
+            $resposta = function_exists('mb_substr')
+                ? mb_substr($resposta, 0, 30)
+                : substr($resposta, 0, 30);
             $etapas   = $jogo['etapas'];
+            $config   = $this->configSala($id);
 
-            // descobre a resposta certa conferindo se a etapa anterior foi feita
-            // (o servidor nao confia no navegador)
-            if ($alvo === 'celular' && $etapas['balcao'] && !$etapas['celular_aberto']) {
-                $solucao = $jogo['palavra'];
-                $volta   = $this->urlSala($id, 'celular');
-            } elseif ($alvo === 'porta' && $etapas['porta']) {
-                if (!$etapas['celular_aberto']) {
-                    // sem codigo ainda: nao conta como erro
-                    Sessao::mensagem('A porta não abre. Ainda falta descobrir o código.');
-                    Roteador::redirecionar($this->urlSala($id, 'porta'));
-                }
-                $solucao = $jogo['codigo'];
-                $volta   = $this->urlSala($id, 'porta');
-            } else {
+            if (!isset($config['alvos'][$alvo])) {
                 Roteador::redirecionar($this->urlSala($id));
             }
+
+            $regra = $config['alvos'][$alvo];
+
+            // o servidor nao confia no navegador: confere se o objeto ja foi examinado
+            // (salas simples, sem objeto, nao tem etapa para conferir)
+            if (!empty($regra['etapa']) && empty($etapas[$regra['etapa']])) {
+                Roteador::redirecionar($this->urlSala($id));
+            }
+
+            // etapa ja concluida: nao deixa repetir a tentativa
+            if (!empty($regra['concluida']) && !empty($etapas[$regra['concluida']])) {
+                Roteador::redirecionar($this->urlSala($id));
+            }
+
+            $volta = $this->urlSala($id, $regra['vista']);
+
+            // sem o requisito (ex.: codigo do celular), nao conta como erro
+            if (!empty($regra['requisito']) && empty($etapas[$regra['requisito']])) {
+                Sessao::mensagem($regra['mensagem_travada']);
+                Roteador::redirecionar($volta);
+            }
+
+            $solucao = $jogo[$regra['solucao']];
 
             try {
                 (new EnigmaCodigo($solucao))->tentar($resposta);
@@ -192,9 +200,10 @@ class JogoController
                 Roteador::redirecionar($volta);
             }
 
-            if ($alvo === 'celular') {
-                Sessao::marcarEtapa('celular_aberto');
-                Sessao::mensagem('O celular desbloqueou e mostra uma mensagem.');
+            // primeira etapa: marca o avanco e revela a pista da proxima
+            if (!empty($regra['concluida'])) {
+                Sessao::marcarEtapa($regra['concluida']);
+                Sessao::mensagem($regra['mensagem']);
                 Roteador::redirecionar($volta);
             }
 
@@ -332,6 +341,79 @@ class JogoController
             return null;
         }
         return $linha;
+    }
+
+    // cada sala tem seus objetos, vistas e etapas. o resto do fluxo e igual
+    private function configSala(string $id): array
+    {
+        return match ($id) {
+            'medio2' => [
+                'vistas' => [
+                    'vinho'   => 'mesa',
+                    'celular' => 'balcao',
+                    'porta'   => 'porta',
+                ],
+                'objetos' => [
+                    'mesa'   => ['etapa' => 'mesa',   'vista' => 'vinho'],
+                    'balcao' => ['etapa' => 'balcao', 'vista' => 'celular'],
+                    'porta'  => ['etapa' => 'porta',  'vista' => 'porta'],
+                ],
+                'alvos' => [
+                    'celular' => [
+                        'etapa'            => 'balcao',
+                        'concluida'        => 'celular_aberto',
+                        'solucao'          => 'palavra',
+                        'vista'            => 'celular',
+                        'mensagem'         => 'O celular desbloqueou e mostra uma mensagem.',
+                    ],
+                    'porta' => [
+                        'etapa'            => 'porta',
+                        'requisito'        => 'celular_aberto',
+                        'solucao'          => 'codigo',
+                        'vista'            => 'porta',
+                        'mensagem_travada' => 'A porta não abre. Ainda falta descobrir o código.',
+                    ],
+                ],
+            ],
+            'facil2' => [
+                'vistas'  => [],
+                'objetos' => [],
+                'alvos'   => [
+                    'porta' => [
+                        'etapa'   => null,
+                        'solucao' => 'codigo',
+                        'vista'   => 'cenario',
+                    ],
+                ],
+            ],
+            'dificil1' => [
+                'vistas' => [
+                    'corrimao' => 'corrimao',
+                    'porta'    => 'porta',
+                ],
+                'objetos' => [
+                    'corrimao' => ['etapa' => 'corrimao', 'vista' => 'corrimao'],
+                    'porta'    => ['etapa' => 'porta',    'vista' => 'porta'],
+                ],
+                'alvos' => [
+                    'corrimao' => [
+                        'etapa'            => 'corrimao',
+                        'concluida'        => 'codigo_resolvido',
+                        'solucao'          => 'codigo',
+                        'vista'            => 'corrimao',
+                        'mensagem'         => 'O mecanismo cede e revela uma palavra gravada no metal.',
+                    ],
+                    'porta' => [
+                        'etapa'            => 'porta',
+                        'requisito'        => 'codigo_resolvido',
+                        'solucao'          => 'palavra',
+                        'vista'            => 'porta',
+                        'mensagem_travada' => 'A porta não abre. O mecanismo da piscina ainda está travado.',
+                    ],
+                ],
+            ],
+            default => throw new \InvalidArgumentException('Sala sem configuração de jogo.'),
+        };
     }
 
     // url da sala (vista = qual imagem mostrar)

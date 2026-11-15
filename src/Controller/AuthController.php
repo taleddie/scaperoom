@@ -52,12 +52,16 @@ class AuthController
 
         $erro = null;
 
-        // mb_strlen conta certo mesmo com acento
-        if (mb_strlen($nome) < 2 || mb_strlen($nome) > 80) {
+        // mbstring pode nao estar instalado; nesse caso cai no strlen
+        $tamanho = static fn (string $texto): int => function_exists('mb_strlen')
+            ? mb_strlen($texto)
+            : strlen($texto);
+
+        if ($tamanho($nome) < 2 || $tamanho($nome) > 80) {
             $erro = 'O nome deve ter entre 2 e 80 caracteres.';
         } elseif (!$email) {
             $erro = 'Informe um e-mail válido.';
-        } elseif (mb_strlen($senha) < 6) {
+        } elseif ($tamanho($senha) < 6) {
             $erro = 'A senha deve ter pelo menos 6 caracteres.';
         }
 

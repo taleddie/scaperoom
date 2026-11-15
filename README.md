@@ -111,10 +111,10 @@ As salas são organizadas em três níveis de dificuldade, com tempos iniciais e
 | Fácil | Sala de Espera | Cadeiras enfileiradas e um relógio parado. |
 | Médio | Arquivo | Fichários antigos escondem mais do que papéis. |
 | Médio | Apartamento | Um ambiente com vinho, um celular bloqueado e pistas para descobrir a senha. |
-| Difícil | Laboratório | Luzes piscando e o cheiro de algo queimando. |
+| Difícil | Piscina Abandonada | Azulejos rachados, um corrimão frio e um eco que não é seu. |
 | Difícil | Sala de Observação | Um vidro espesso separa o jogador do que há lá dentro. |
 
-O catálogo possui seis cenários cadastrados. Nesta versão, a sala **Apartamento (Médio 2)** possui interface e fluxo de jogo implementados; as demais estão cadastradas, mas ainda não possuem suas respectivas interfaces jogáveis.
+O catálogo possui seis cenários cadastrados. Nesta versão, as salas **Sala de Espera (Fácil 2)**, **Apartamento (Médio 2)** e **Piscina Abandonada (Difícil 1)** possuem interface e fluxo de jogo implementados; as demais estão cadastradas, mas ainda não possuem suas respectivas interfaces jogáveis.
 
 ## Banco de dados
 
@@ -164,6 +164,10 @@ O sistema possui validações tanto nos dados enviados pelos formulários quanto
 Cada partida é associada a um jogador, a uma sala e a um nível de dificuldade. O tempo restante considera o limite definido para a dificuldade e a quantidade de erros cometidos.
 
 Na sala Apartamento, o jogador precisa observar os elementos do cenário e seguir uma sequência de etapas: identificar a pista relacionada ao vinho, descobrir a palavra que desbloqueia o celular e utilizar o código revelado para abrir a porta.
+
+Na sala Sala de Espera, o jogador observa as cadeiras e o relógio, interpreta a dica sobre a paciência e envia diretamente o código de três dígitos para concluir a sala.
+
+Na sala Piscina Abandonada, o jogador examina o corrimão, descobre o código de cinco dígitos escondido no reflexo e usa a palavra revelada pelo mecanismo para abrir a porta de saída.
 
 O cronômetro exibido no navegador é atualizado por JavaScript, mas a verificação do tempo e o encerramento da partida são realizados no servidor. Quando o tempo termina, a partida recebe o status correspondente e a tela de jumpscare pode ser exibida conforme a preferência do jogador.
 
