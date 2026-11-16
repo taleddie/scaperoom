@@ -77,6 +77,9 @@ class Sessao
                 // piscina: corrimao = viu o corrimao, codigo_resolvido = acertou o codigo
                 'corrimao'         => false,
                 'codigo_resolvido' => false,
+                //nivel 0: interruptor = ligou a luz UV, documentos = decidiu ler os papeis da mesa
+                'interruptor'       => false,
+                'documentos'        => false,
             ],
         ];
     }

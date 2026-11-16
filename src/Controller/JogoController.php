@@ -102,6 +102,16 @@ class JogoController
             if (!$liberada) {
                 $vista = 'cenario';
             }
+            // pista na url: na vista indicada, a url precisa mostrar o codigo em ASCII.
+            // o jogador so chega aqui depois de ligar a luz (a vista ja foi liberada acima)
+            if (isset($config['pista_url']) && $vista === $config['pista_url']['vista']) {
+                $param = $config['pista_url']['param'];
+                $pista = implode('', array_map('ord', str_split($jogo['codigo'])));
+
+                if ((string) filter_input(INPUT_GET, $param) !== $pista) {
+                    Roteador::redirecionar($this->urlSala($id, $vista) . '&' . $param . '=' . $pista);
+                }
+            }
 
             // a view so recebe o q o jogador JA desbloqueou.
             // o segredo da proxima etapa nao vai no html antes da hora
@@ -374,6 +384,30 @@ class JogoController
                         'mensagem_travada' => 'A porta não abre. Ainda falta descobrir o código.',
                     ],
                 ],
+            ],
+            'facil1' => [
+                'vistas' => [
+                    'uv'     => 'interruptor',
+                    'mesa'   => 'mesa',
+                    'carta'  => 'documentos',
+                    'tabela' => 'documentos',
+                    'porta'  => 'porta',
+                ],
+                'objetos' => [
+                    'interruptor' => ['etapa' => 'interruptor', 'vista' => 'uv'],
+                    'mesa'        => ['etapa' => 'mesa',        'vista' => 'mesa'],
+                    'documentos'  => ['etapa' => 'documentos',  'vista' => 'carta'],
+                    'porta'       => ['etapa' => 'porta',       'vista' => 'porta'],
+                ],
+                'alvos' => [
+                    'porta' => [
+                        'etapa'   => 'porta',
+                        'solucao' => 'codigo',
+                        'vista'   => 'porta',
+                    ],
+                ],
+                // na vista 'uv' a url mostra o codigo em ASCII (?ref=69887384)
+                'pista_url' => ['vista' => 'uv', 'param' => 'ref'],
             ],
             'facil2' => [
                 'vistas'  => [],

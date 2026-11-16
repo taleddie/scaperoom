@@ -12,9 +12,9 @@ final class Sala
         'facil1' => [
             'dificuldade'   => 'facil',
             'tipo'          => 'simples',
-            'nome'          => 'Almoxarifado',
-            'descricao'     => 'Prateleiras vazias e uma mesa coberta de poeira.',
-            'codigo'        => '472',
+            'nome'          => 'O Nível 0',
+            'descricao'     => 'Paredes infinitas e um espaço familiar.',
+            'codigo'        => 'EXIT',
             'palavra'       => null,
             'codigo_na_url' => false,
         ],
