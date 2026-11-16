@@ -83,7 +83,7 @@ main:has(.colunas) { max-width:1000px; }
 /* a imagem ocupa a largura toda e as areas clicaveis ficam por cima, em % */
 .cena { position:relative; max-width:735px; margin:1rem auto; line-height:0; }
 .cena img { width:100%; height:auto; display:block; border:1px solid var(--borda); }
-.ponto { position:absolute; display:block; border:2px dashed transparent; border-radius:6px; }
+.ponto { position:absolute; display:block; border-radius:6px; }
 .ponto:hover, .ponto:focus { border-color:var(--destaque); background:rgba(217,197,119,.12); }
 .achado { background:var(--card); border:1px solid var(--borda); padding:1rem; text-align:center; margin:1rem 0; }
 .codigo { font-size:3rem; letter-spacing:.3em; color:var(--destaque); font-weight:400; }

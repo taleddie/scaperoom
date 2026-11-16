@@ -14,7 +14,6 @@ use App\Model\EnigmaCodigo;
 use App\Model\Partida;
 use App\Model\Sala;
 
-// controla o jogo: escolher sala, jogar, ganhar ou perder
 class JogoController
 {
     // so abre a conexao com o banco qd precisa
@@ -54,6 +53,7 @@ class JogoController
 
     // ---------------------------------------------------------------
     // comeca a partida na sala escolhida (POST)
+    // ---------------------------------------------------------------
     public function iniciar(): void
     {
         $id = (string) filter_input(INPUT_POST, 'sala');
@@ -79,101 +79,129 @@ class JogoController
         Sessao::iniciarJogo($partidaId, $id, [
             'codigo'  => Sala::codigo($id),
             'palavra' => Sala::palavra($id),
+            'cartao'  => Sala::cartao($id),
         ]);
 
         Roteador::redirecionar($this->urlSala($id));
     }
 
+    // ---------------------------------------------------------------
     // mostra a sala (uma view por sala). ?vista= diz qual imagem aparece
+    // ---------------------------------------------------------------
     public function sala(): void
     {
         $this->proteger(function () {
             [$partida, $id, $jogo] = $this->carregar();
 
             $etapas = $jogo['etapas'];
+            $config = $this->configSala($id);
 
             // vista pedida na url, so aceita se a etapa anterior ja foi feita
             $vista = (string) filter_input(INPUT_GET, 'vista');
-            $liberada = match ($vista) {
-                'vinho'   => $etapas['mesa'],
-                'celular' => $etapas['balcao'],
-                'porta'   => $etapas['porta'],
-                default   => false,
-            };
+            $liberada = isset($config['vistas'][$vista])
+                && !empty($etapas[$config['vistas'][$vista]]);
             if (!$liberada) {
                 $vista = 'cenario';
             }
+            // pista na url: na vista indicada, a url precisa mostrar o codigo em ASCII.
+            // o jogador so chega aqui depois de ligar a luz (a vista ja foi liberada acima)
+            if (isset($config['pista_url']) && $vista === $config['pista_url']['vista']) {
+                $param = $config['pista_url']['param'];
+                $pista = implode('', array_map('ord', str_split($jogo['codigo'])));
 
-            // a view so recebe o q o jogador JA desbloqueou
+                if ((string) filter_input(INPUT_GET, $param) !== $pista) {
+                    Roteador::redirecionar($this->urlSala($id, $vista) . '&' . $param . '=' . $pista);
+                }
+            }
+
+            // a view so recebe o q o jogador JA desbloqueou.
+            // o segredo da proxima etapa nao vai no html antes da hora
             View::renderizar('salas/' . $id, [
-                'titulo'        => Sala::nome($id),
-                'sala'          => Sala::dados($id),
-                'restante'      => $partida->tempoRestante(),
-                'penalidade'    => $partida->penalidadeErro(),
-                'erros'         => $partida->getErros(),
-                'mensagem'      => Sessao::pegarMensagem(),
-                'vista'         => $vista,
-                'celularAberto' => $etapas['celular_aberto'],
-                'codigoVisivel' => $etapas['celular_aberto'] ? $jogo['codigo'] : null,
+                'titulo'           => Sala::nome($id),
+                'sala'             => Sala::dados($id),
+                'restante'         => $partida->tempoRestante(),
+                'penalidade'       => $partida->penalidadeErro(),
+                'erros'            => $partida->getErros(),
+                'mensagem'         => Sessao::pegarMensagem(),
+                'vista'            => $vista,
+                'etapas'           => $etapas,
+                'celularAberto'    => !empty($etapas['celular_aberto']),
+                'codigoVisivel'    => !empty($etapas['celular_aberto']) ? $jogo['codigo'] : null,
+                'codigoResolvido'  => !empty($etapas['codigo_resolvido']),
+                'palavraVisivel'   => !empty($etapas['codigo_resolvido']) ? $jogo['palavra'] : null,
             ]);
         });
     }
 
-    // clique num objeto da sala
+    // ---------------------------------------------------------------
+    // clique num objeto da sala (mesa, balcao, porta)
+    // ---------------------------------------------------------------
     public function examinar(): void
     {
         $this->proteger(function () {
             [, $id] = $this->carregar();
 
             $objeto = (string) filter_input(INPUT_GET, 'objeto');
+            $config = $this->configSala($id);
 
-            // objeto => [etapa q marca, vista q abre]
-            $objetos = [
-                'mesa'   => ['mesa',   'vinho'],
-                'balcao' => ['balcao', 'celular'],
-                'porta'  => ['porta',  'porta'],
-            ];
-
-            if (!isset($objetos[$objeto])) {
+            if (!isset($config['objetos'][$objeto])) {
                 Roteador::redirecionar($this->urlSala($id));
             }
 
-            [$etapa, $vista] = $objetos[$objeto];
-            Sessao::marcarEtapa($etapa);
+            $alvo = $config['objetos'][$objeto];
+            Sessao::marcarEtapa($alvo['etapa']);
 
-            Roteador::redirecionar($this->urlSala($id, $vista));
+            Roteador::redirecionar($this->urlSala($id, $alvo['vista']));
         });
     }
 
-    // tentativa de senha do celular ou codigo da porta
+    // ---------------------------------------------------------------
+    // tentativa de senha do celular ou codigo da porta (POST)
+    // ---------------------------------------------------------------
     public function tentar(): void
     {
         $this->proteger(function () {
             [$partida, $id, $jogo] = $this->carregar();
 
             $alvo     = (string) filter_input(INPUT_POST, 'alvo');
-            $resposta = mb_substr(trim((string) filter_input(INPUT_POST, 'resposta')), 0, 30);
+            $resposta = trim((string) filter_input(INPUT_POST, 'resposta'));
+            $resposta = function_exists('mb_substr')
+                ? mb_substr($resposta, 0, 30)
+                : substr($resposta, 0, 30);
             $etapas   = $jogo['etapas'];
+            $config   = $this->configSala($id);
 
-            // descobre a resposta certa conferindo se a etapa anterior foi feita
-            if ($alvo === 'celular' && $etapas['balcao'] && !$etapas['celular_aberto']) {
-                $solucao = $jogo['palavra'];
-                $volta   = $this->urlSala($id, 'celular');
-            } elseif ($alvo === 'porta' && $etapas['porta']) {
-                if (!$etapas['celular_aberto']) {
-                    Sessao::mensagem('A porta não abre. Ainda falta descobrir o código.');
-                    Roteador::redirecionar($this->urlSala($id, 'porta'));
-                }
-                $solucao = $jogo['codigo'];
-                $volta   = $this->urlSala($id, 'porta');
-            } else {
+            if (!isset($config['alvos'][$alvo])) {
                 Roteador::redirecionar($this->urlSala($id));
             }
+
+            $regra = $config['alvos'][$alvo];
+
+            // o servidor nao confia no navegador: confere se o objeto ja foi examinado
+            // (salas simples, sem objeto, nao tem etapa para conferir)
+            if (!empty($regra['etapa']) && empty($etapas[$regra['etapa']])) {
+                Roteador::redirecionar($this->urlSala($id));
+            }
+
+            // etapa ja concluida: nao deixa repetir a tentativa
+            if (!empty($regra['concluida']) && !empty($etapas[$regra['concluida']])) {
+                Roteador::redirecionar($this->urlSala($id));
+            }
+
+            $volta = $this->urlSala($id, $regra['vista']);
+
+            // sem o requisito (ex.: codigo do celular), nao conta como erro
+            if (!empty($regra['requisito']) && empty($etapas[$regra['requisito']])) {
+                Sessao::mensagem($regra['mensagem_travada']);
+                Roteador::redirecionar($volta);
+            }
+
+            $solucao = $jogo[$regra['solucao']];
 
             try {
                 (new EnigmaCodigo($solucao))->tentar($resposta);
             } catch (CodigoIncorretoException $e) {
-                // soma erro no banco
+                // errou: soma erro no banco. o tempo perdido sai no proximo carregar()
                 $this->partidas()->registrarErro($partida->getId());
 
                 $pen   = $partida->penalidadeErro();
@@ -183,27 +211,32 @@ class JogoController
                 Roteador::redirecionar($volta);
             }
 
-            if ($alvo === 'celular') {
-                Sessao::marcarEtapa('celular_aberto');
-                Sessao::mensagem('O celular desbloqueou e mostra uma mensagem.');
+            // primeira etapa: marca o avanco e revela a pista da proxima
+            if (!empty($regra['concluida'])) {
+                Sessao::marcarEtapa($regra['concluida']);
+                Sessao::mensagem($regra['mensagem']);
                 Roteador::redirecionar($volta);
             }
 
-            // escapa ao sair certinho pela porta e pa
+            // acertou a porta: escapou
             $this->partidas()->finalizar($partida->getId(), 'concluida');
             Roteador::redirecionar('index.php?acao=vitoria');
         });
     }
 
+    // o relogio do navegador chegou a zero: quem decide e o servidor
     public function verificarTempo(): void
     {
         $this->proteger(function () {
             [, $id] = $this->carregar();
+            // se ainda sobrou tempo no servidor, so volta pra sala
             Roteador::redirecionar($this->urlSala($id));
         });
     }
 
+    // ---------------------------------------------------------------
     // fim de jogo
+    // ---------------------------------------------------------------
     public function vitoria(): void
     {
         $linha = $this->partidaDaSessao();
@@ -228,13 +261,13 @@ class JogoController
             Roteador::redirecionar('index.php?acao=salas');
         }
 
-        // força fechar a partida quando o tempo acaba
+        // se o tempo acabou mas a partida ainda nao foi fechada, fecha agora
         if ($linha['status'] === 'em_andamento' && Partida::fromArray($linha)->tempoEsgotado()) {
             $this->partidas()->finalizar((int) $linha['id'], 'tempo_esgotado');
             $linha['status'] = 'tempo_esgotado';
         }
 
-        // so leva o susto quem perdeu por tempo
+        // so leva o susto quem perdeu de verdade. digitar a url a toa nao funciona
         if ($linha['status'] !== 'tempo_esgotado') {
             Roteador::redirecionar('index.php?acao=salas');
         }
@@ -242,7 +275,7 @@ class JogoController
         View::renderizar('jumpscare', ['ligado' => $this->jumpscareLigado()], false);
     }
 
-    // liga/desliga o jumpscare
+    // cookie (aula 31): liga/desliga o jumpscare
     public function preferencias(): void
     {
         $valor = filter_input(INPUT_POST, 'jumpscare') === 'off' ? 'off' : 'on';
@@ -257,7 +290,9 @@ class JogoController
         Roteador::redirecionar('index.php?acao=salas');
     }
 
-    // auxiliaresssssssssssssssss
+    // ===============================================================
+    // auxiliares
+    // ===============================================================
 
     private function jumpscareLigado(): bool
     {
@@ -317,6 +352,140 @@ class JogoController
             return null;
         }
         return $linha;
+    }
+
+    // cada sala tem seus objetos, vistas e etapas. o resto do fluxo e igual
+    private function configSala(string $id): array
+    {
+        return match ($id) {
+            'medio2' => [
+                'vistas' => [
+                    'vinho'   => 'mesa',
+                    'celular' => 'balcao',
+                    'porta'   => 'porta',
+                ],
+                'objetos' => [
+                    'mesa'   => ['etapa' => 'mesa',   'vista' => 'vinho'],
+                    'balcao' => ['etapa' => 'balcao', 'vista' => 'celular'],
+                    'porta'  => ['etapa' => 'porta',  'vista' => 'porta'],
+                ],
+                'alvos' => [
+                    'celular' => [
+                        'etapa'            => 'balcao',
+                        'concluida'        => 'celular_aberto',
+                        'solucao'          => 'palavra',
+                        'vista'            => 'celular',
+                        'mensagem'         => 'O celular desbloqueou e mostra uma mensagem.',
+                    ],
+                    'porta' => [
+                        'etapa'            => 'porta',
+                        'requisito'        => 'celular_aberto',
+                        'solucao'          => 'codigo',
+                        'vista'            => 'porta',
+                        'mensagem_travada' => 'A porta não abre. Ainda falta descobrir o código.',
+                    ],
+                ],
+            ],
+            'facil1' => [
+                'vistas' => [
+                    'uv'     => 'interruptor',
+                    'mesa'   => 'mesa',
+                    'carta'  => 'documentos',
+                    'tabela' => 'documentos',
+                    'porta'  => 'porta',
+                ],
+                'objetos' => [
+                    'interruptor' => ['etapa' => 'interruptor', 'vista' => 'uv'],
+                    'mesa'        => ['etapa' => 'mesa',        'vista' => 'mesa'],
+                    'documentos'  => ['etapa' => 'documentos',  'vista' => 'carta'],
+                    'porta'       => ['etapa' => 'porta',       'vista' => 'porta'],
+                ],
+                'alvos' => [
+                    'porta' => [
+                        'etapa'   => 'porta',
+                        'solucao' => 'codigo',
+                        'vista'   => 'porta',
+                    ],
+                ],
+                // na vista 'uv' a url mostra o codigo em ASCII (?ref=69887384)
+                'pista_url' => ['vista' => 'uv', 'param' => 'ref'],
+            ],
+            'dificil2' => [
+                'vistas' => [
+                    'telefone'   => 'telefone',
+                    'gaveta'     => 'gaveta',
+                    'camera'     => 'camera',
+                    'cam5'       => 'cam5',
+                    'computador' => 'computador',
+                ],
+                'objetos' => [
+                    'telefone'   => ['etapa' => 'telefone',   'vista' => 'telefone'],
+                    'gaveta'     => ['etapa' => 'gaveta',     'vista' => 'gaveta'],
+                    'camera'     => ['etapa' => 'camera',     'vista' => 'camera'],
+                    'cam5'       => ['etapa' => 'cam5',       'vista' => 'cam5'],
+                    'computador' => ['etapa' => 'computador', 'vista' => 'computador'],
+                ],
+                'alvos' => [
+                    'gaveta' => [
+                        'etapa'     => 'gaveta',
+                        'concluida' => 'gaveta_aberta',
+                        'solucao'   => 'codigo',
+                        'vista'     => 'gaveta',
+                        'mensagem'  => 'A gaveta abriu.',
+                    ],
+                    'cam5' => [
+                        'etapa'     => 'cam5',
+                        'concluida' => 'cam5_liberada',
+                        'solucao'   => 'palavra',
+                        'vista'     => 'cam5',
+                        'mensagem'  => 'Câmera liberada.',
+                    ],
+                    'computador' => [
+                        'etapa'   => 'computador',
+                        'solucao' => 'cartao',
+                        'vista'   => 'computador',
+                    ],
+                ],
+            ],
+            'facil2' => [
+                'vistas'  => [],
+                'objetos' => [],
+                'alvos'   => [
+                    'porta' => [
+                        'etapa'   => null,
+                        'solucao' => 'codigo',
+                        'vista'   => 'cenario',
+                    ],
+                ],
+            ],
+            'dificil1' => [
+                'vistas' => [
+                    'corrimao' => 'corrimao',
+                    'porta'    => 'porta',
+                ],
+                'objetos' => [
+                    'corrimao' => ['etapa' => 'corrimao', 'vista' => 'corrimao'],
+                    'porta'    => ['etapa' => 'porta',    'vista' => 'porta'],
+                ],
+                'alvos' => [
+                    'corrimao' => [
+                        'etapa'            => 'corrimao',
+                        'concluida'        => 'codigo_resolvido',
+                        'solucao'          => 'codigo',
+                        'vista'            => 'corrimao',
+                        'mensagem'         => 'O mecanismo cede e revela uma palavra gravada no metal.',
+                    ],
+                    'porta' => [
+                        'etapa'            => 'porta',
+                        'requisito'        => 'codigo_resolvido',
+                        'solucao'          => 'palavra',
+                        'vista'            => 'porta',
+                        'mensagem_travada' => 'A porta não abre. O mecanismo da piscina ainda está travado.',
+                    ],
+                ],
+            ],
+            default => throw new \InvalidArgumentException('Sala sem configuração de jogo.'),
+        };
     }
 
     // url da sala (vista = qual imagem mostrar)

@@ -12,9 +12,9 @@ final class Sala
         'facil1' => [
             'dificuldade'   => 'facil',
             'tipo'          => 'simples',
-            'nome'          => 'Almoxarifado',
-            'descricao'     => 'Prateleiras vazias e uma mesa coberta de poeira.',
-            'codigo'        => '472',
+            'nome'          => 'O Nível 0',
+            'descricao'     => 'Paredes infinitas e um espaço familiar.',
+            'codigo'        => 'EXIT',
             'palavra'       => null,
             'codigo_na_url' => false,
         ],
@@ -56,14 +56,19 @@ final class Sala
         ],
         'dificil2' => [
             'dificuldade'   => 'dificil',
-            'tipo'          => 'armario',
-            'nome'          => 'Sala de Observação',
-            'descricao'     => 'Um vidro espesso separa você do que há lá dentro.',
-            'codigo'        => '90417',
-            'palavra'       => 'MICROSCOPIO',
+            'tipo'          => 'escritorio',
+            'nome'          => 'Turno da Noite',
+            'descricao'     => 'Você arranjou um novo emprego como guarda noturno.',
+            'codigo'        => '274',
+            'palavra'       => 'FOX',
+            'cartao'        => '61416',
             'codigo_na_url' => false,
         ],
     ];
+
+    public static function cartao(string $sala): ?string{
+        return self::obter($sala)['cartao'] ?? null;
+    }
 
     public static function existe(string $sala): bool
     {

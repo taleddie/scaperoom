@@ -1,8 +1,3 @@
-```php
-<!--
-o reflexo repete os numeros: 60 12 3
-o eco repete o mesmo segredo tres vezes
--->
 <?php
 use App\Core\View;
 
@@ -26,11 +21,11 @@ $base = 'index.php?acao=';
         <img src="assets/img/dificil1/cenario.jpg" alt="Piscina abandonada com azulejos rachados e um corrimão de metal">
 
         <!-- Examinar corrimão -->
-        <a class="ponto" style="left:66%;top:26%;width:18%;height:42%"
+        <a class="ponto" style="left:66%;top:62%;width:18%;height:10%"
             href="<?= $base ?>examinar&amp;objeto=corrimao" title="Corrimão de metal"></a>
 
         <!-- Examinar porta de saída -->
-        <a class="ponto" style="left:34%;top:48%;width:22%;height:22%"
+        <a class="ponto" style="left:13%;top:43%;width:22%;height:22%"
             href="<?= $base ?>examinar&amp;objeto=porta" title="Porta de saída"></a>
     </div>
 
