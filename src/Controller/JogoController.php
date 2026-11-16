@@ -79,6 +79,7 @@ class JogoController
         Sessao::iniciarJogo($partidaId, $id, [
             'codigo'  => Sala::codigo($id),
             'palavra' => Sala::palavra($id),
+            'cartao'  => Sala::cartao($id),
         ]);
 
         Roteador::redirecionar($this->urlSala($id));
@@ -408,6 +409,43 @@ class JogoController
                 ],
                 // na vista 'uv' a url mostra o codigo em ASCII (?ref=69887384)
                 'pista_url' => ['vista' => 'uv', 'param' => 'ref'],
+            ],
+            'dificil2' => [
+                'vistas' => [
+                    'telefone'   => 'telefone',
+                    'gaveta'     => 'gaveta',
+                    'camera'     => 'camera',
+                    'cam5'       => 'cam5',
+                    'computador' => 'computador',
+                ],
+                'objetos' => [
+                    'telefone'   => ['etapa' => 'telefone',   'vista' => 'telefone'],
+                    'gaveta'     => ['etapa' => 'gaveta',     'vista' => 'gaveta'],
+                    'camera'     => ['etapa' => 'camera',     'vista' => 'camera'],
+                    'cam5'       => ['etapa' => 'cam5',       'vista' => 'cam5'],
+                    'computador' => ['etapa' => 'computador', 'vista' => 'computador'],
+                ],
+                'alvos' => [
+                    'gaveta' => [
+                        'etapa'     => 'gaveta',
+                        'concluida' => 'gaveta_aberta',
+                        'solucao'   => 'codigo',
+                        'vista'     => 'gaveta',
+                        'mensagem'  => 'A gaveta abriu.',
+                    ],
+                    'cam5' => [
+                        'etapa'     => 'cam5',
+                        'concluida' => 'cam5_liberada',
+                        'solucao'   => 'palavra',
+                        'vista'     => 'cam5',
+                        'mensagem'  => 'Câmera liberada.',
+                    ],
+                    'computador' => [
+                        'etapa'   => 'computador',
+                        'solucao' => 'cartao',
+                        'vista'   => 'computador',
+                    ],
+                ],
             ],
             'facil2' => [
                 'vistas'  => [],
