@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tempo esgotado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/estilo.css">
 </head>
 <body class="jumpscare-pagina">
 
 <?php if ($ligado): ?>
-    <div id="susto" class="susto"><span>:</span></div>
+    <div id="susto" class="susto"><span>:(</span></div>
 <?php endif; ?>
 
 <div id="gameover" class="gameover" <?= $ligado ? 'hidden' : '' ?>>

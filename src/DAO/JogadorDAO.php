@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\DAO;
 
-// "use" importa classes de outros namespaces para usar só o nome curto
+// "use" importa classes de outros namespaces para usar so o nome curto
 use App\Core\Conexao;
 use App\Model\Jogador;
 use PDO;

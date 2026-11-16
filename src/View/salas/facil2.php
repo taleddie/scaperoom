@@ -34,4 +34,6 @@ $base = 'index.php?acao=';
     <button type="submit">Enviar código</button>
 </form>
 
+<p><a class="botao" href="<?= $base ?>sala&amp;sala=<?= View::e($sala['id']) ?>">Voltar</a></p>
+
 <script src="assets/js/cronometro.js"></script>

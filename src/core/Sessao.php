@@ -65,7 +65,6 @@ class Sessao
             'sala'       => $sala,
             'codigo'     => $segredos['codigo'],
             'palavra'    => $segredos['palavra'],
-            'cartao'     => $segredos['cartao'] ?? null,
             // etapas q ja foram feitas, o servidor confere antes de liberar a proxima
             'etapas'     => [
                 'mesa'           => false,
@@ -78,17 +77,6 @@ class Sessao
                 // piscina: corrimao = viu o corrimao, codigo_resolvido = acertou o codigo
                 'corrimao'         => false,
                 'codigo_resolvido' => false,
-                //nivel 0: interruptor = ligou a luz UV, documentos = decidiu ler os papeis da mesa
-                'interruptor'       => false,
-                'documentos'        => false,
-                // fnaf: telefone, gaveta, camera, cam5 e computador = abriu a tela; gaveta_aberta e cam5_liberada = resolveu
-                'telefone'      => false,
-                'gaveta'        => false,
-                'gaveta_aberta' => false,
-                'camera'        => false,
-                'cam5'          => false,
-                'cam5_liberada' => false,
-                'computador'    => false,
             ],
         ];
     }

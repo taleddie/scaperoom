@@ -4,58 +4,65 @@ use App\Model\Dificuldade;
 
 $rotulos = ['facil' => 'Fácil', 'medio' => 'Médio', 'dificil' => 'Difícil'];
 ?>
-<h2>Olá, <?= View::e($nome) ?>. Escolha uma sala</h2>
+<div class="barra-op">
+    <span>operador: <strong><?= View::e($nome) ?></strong></span>
+    <span class="barra-links">
+        <a href="index.php?acao=ranking">ranking</a>
+        <form method="post" action="index.php?acao=sair">
+            <?= View::csrf() ?>
+            <button type="submit" class="link">sair</button>
+        </form>
+    </span>
+</div>
 
-<p class="aviso">Este jogo tem sustos e sons altos. Se o tempo acabar, algo vai te achar.</p>
-<p>Sair da partida no meio = perder. Não tem como salvar.</p>
+<h2 class="titulo-monitores">Selecione uma câmera</h2>
+<p class="regras">
+    Sair da partida no meio = perder, não tem como salvar. Se o tempo acabar, algo vai te achar.
+</p>
 
+<div class="colunas">
 <?php foreach ($grupos as $dif => $lista): ?>
     <?php $config = Dificuldade::getConfig($dif); ?>
-    <section class="grupo">
+    <section class="coluna">
         <h3>
             <?= View::e($rotulos[$dif]) ?>
             <small>
                 <?= (int) ($config['limite_segundos'] / 60) ?> min
                 <?php if ($config['penalidade_erro'] > 0): ?>
-                    · erro = -<?= (int) $config['penalidade_erro'] ?>s
+                    · erro -<?= (int) $config['penalidade_erro'] ?>s
                 <?php endif; ?>
             </small>
         </h3>
 
-        <div class="cartoes">
-            <?php foreach ($lista as $sala): ?>
-                <?php $feita = in_array($sala['id'], $concluidas, true); ?>
-                <form method="post" action="index.php?acao=iniciar" class="cartao">
-                    <?= View::csrf() ?>
-                    <input type="hidden" name="sala" value="<?= View::e($sala['id']) ?>">
-                    <strong><?= View::e($sala['nome']) ?></strong>
-                    <span class="desc"><?= View::e($sala['descricao']) ?></span>
-                    <?php if ($feita): ?>
-                        <span class="selo">Concluída</span>
-                    <?php endif; ?>
-                    <?php if ($sala['pronta']): ?>
-                        <button type="submit"><?= $feita ? 'Jogar de novo' : 'Jogar' ?></button>
-                    <?php else: ?>
-                        <button type="button" disabled>Em breve</button>
-                    <?php endif; ?>
-                </form>
-            <?php endforeach; ?>
-        </div>
+        <?php foreach ($lista as $sala): ?>
+            <?php $feita = in_array($sala['id'], $concluidas, true); ?>
+            <form method="post" action="index.php?acao=iniciar">
+                <?= View::csrf() ?>
+                <input type="hidden" name="sala" value="<?= View::e($sala['id']) ?>">
+                <?php /* a tela inteira e o botao: clicou, comecou */ ?>
+                <button type="submit" class="monitor <?= $sala['pronta'] ? '' : 'sem-sinal' ?>" <?= $sala['pronta'] ? '' : 'disabled' ?>>
+                    <span class="tela" <?= $sala['capa'] ? 'style="background-image:url(' . View::e($sala['capa']) . ')"' : '' ?>>
+                        <span class="cam">CAM <?= sprintf('%02d', $sala['cam']) ?></span>
+                        <?php if (!$sala['pronta']): ?>
+                            <span class="estado">SEM SINAL</span>
+                        <?php elseif ($feita): ?>
+                            <span class="estado ok">CONCLUÍDA</span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="legenda-monitor">
+                        <strong><?= View::e($sala['nome']) ?></strong>
+                        <em><?= $sala['pronta'] ? ($feita ? 'jogar de novo' : 'jogar') : 'em breve' ?></em>
+                    </span>
+                </button>
+            </form>
+        <?php endforeach; ?>
     </section>
 <?php endforeach; ?>
+</div>
 
-<hr>
-
-<form method="post" action="index.php?acao=preferencias" class="linha">
+<form method="post" action="index.php?acao=preferencias" class="rodape-opcoes">
     <?= View::csrf() ?>
-    <span>Jumpscare: <strong><?= $jumpscareLigado ? 'ligado' : 'desligado' ?></strong></span>
     <input type="hidden" name="jumpscare" value="<?= $jumpscareLigado ? 'off' : 'on' ?>">
-    <button type="submit"><?= $jumpscareLigado ? 'Desligar' : 'Ligar' ?></button>
-</form>
-
-<p><a href="index.php?acao=ranking">Ver ranking</a></p>
-
-<form method="post" action="index.php?acao=sair">
-    <?= View::csrf() ?>
-    <button type="submit">Sair da conta</button>
+    <span>jumpscare: <?= $jumpscareLigado ? 'ligado' : 'desligado' ?></span>
+    <button type="submit" class="link"><?= $jumpscareLigado ? 'desligar' : 'ligar' ?></button>
 </form>
