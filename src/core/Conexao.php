@@ -15,7 +15,7 @@ class Conexao
     public static function getInstancia(): PDO
     {
         if (self::$instancia === null) {
-            $cfg = require __DIR__ . '/../../config/database.php';
+            $cfg = require __DIR__ . '/../../config/database.example.php';
 
             $dsn = "mysql:host={$cfg['host']};dbname={$cfg['banco']};charset={$cfg['charset']}";
 
