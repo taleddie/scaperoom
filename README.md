@@ -12,7 +12,7 @@
 
 O **Escape Room** é um jogo de enigmas em formato de escape room, desenvolvido para navegador. A proposta é fazer com que o jogador investigue os cenários, encontre pistas e resolva desafios para conseguir escapar antes que o tempo termine.
 
-A ambientação é inspirada nas **Backrooms**, especialmente na sensação de espaços vazios, repetitivos e desconfortáveis, e no **Notpron**, jogo conhecido por seus enigmas que exigem observação, interpretação e raciocínio fora do convencional.
+A ambientação foi inicialmente inspirada nas **Backrooms**, especialmente na sensação de espaços vazios, repetitivos e desconfortáveis, e no **Notpron**, jogo conhecido por seus enigmas que exigem observação, interpretação e raciocínio fora do convencional.
 
 O projeto foi desenvolvido em PHP e utiliza conceitos de programação orientada a objetos, arquitetura MVC, persistência de dados e validação de requisições.
 
@@ -107,14 +107,14 @@ As salas são organizadas em três níveis de dificuldade, com tempos iniciais e
 
 | Dificuldade | Sala | Descrição |
 |:---:|---|---|
-| Fácil | Almoxarifado | Prateleiras vazias e uma mesa coberta de poeira. |
+| Fácil | O Nível 0 | Paredes infinitas e um lugar familiar. |
 | Fácil | Sala de Espera | Cadeiras enfileiradas e um relógio parado. |
 | Médio | Arquivo | Fichários antigos escondem mais do que papéis. |
 | Médio | Apartamento | Um ambiente com vinho, um celular bloqueado e pistas para descobrir a senha. |
 | Difícil | Piscina Abandonada | Azulejos rachados, um corrimão frio e um eco que não é seu. |
-| Difícil | Sala de Observação | Um vidro espesso separa o jogador do que há lá dentro. |
+| Difícil | Turno da noite. | Você arrumou um emprego como guarda noturno. |
 
-O catálogo possui seis cenários cadastrados. Nesta versão, as salas **Sala de Espera (Fácil 2)**, **Apartamento (Médio 2)** e **Piscina Abandonada (Difícil 1)** possuem interface e fluxo de jogo implementados; as demais estão cadastradas, mas ainda não possuem suas respectivas interfaces jogáveis.
+O catálogo possui seis cenários cadastrados. Nesta versão, as salas **Nível 0 (Fácil 1)**,**Sala de Espera (Fácil 2)**, **Apartamento (Médio 2)**, **Piscina Abandonada (Difícil 1)** e **Turno da Noite (Difícil 2)**, possuem interface e fluxo de jogo implementados; as demais estão cadastradas, mas ainda não possuem suas respectivas interfaces jogáveis.
 
 ## Banco de dados
 
